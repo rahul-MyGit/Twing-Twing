@@ -173,11 +173,38 @@ const getAllLikePosts = async (req,res)=>{
     }
 }
 
+const getAllFollowingPosts = async (req, res) => {
+    try {
+        const userId = req.user._id;
+
+        const user = await User.findById(userId);
+        if(!user){ return res.status(404).json({message: "User not found"}) }
+
+        const following = user.following;
+        const findPosts = await Post.find({user: {$in: following}}).sort({createdAt: -1})
+        .populate({
+            path: "user",
+            select: "-password"
+        })
+        .populate({
+            path: "comments.user",
+            select: "-password"
+        })
+
+        res.status(200).json(findPosts);
+
+    } catch (error) {
+        console.log("Error while getting all following posts: ",error.message);
+        return res.status(500).json({message: "Internal Server Error"});
+    }
+}
+
 module.exports = {
     createPost,
     deletePost,
     commentOnPost,
     likeUnLikeOnPost,
     getAllPosts,
-    getAllLikePosts
+    getAllLikePosts,
+    getAllFollowingPosts
 }
