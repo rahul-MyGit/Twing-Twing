@@ -52,8 +52,8 @@ const userSchema = new mongoose.Schema({
     link: {
         type: String,
         default: ""
-    }
-
+    },
+    
 },{timestamps: true})
 
 const User = mongoose.model('User', userSchema);
