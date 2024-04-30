@@ -1,4 +1,5 @@
-const userSchema = require("../zod/types");
+const userSignUpSchema = require("../zod/types");
+const userSignInSchema = require("../zod/types");
 const User = require("../model/userModel");
 const bcrypt = require("bcryptjs");
 const generateTokenAndSetCookie = require("../lib/utils/generateToken");
@@ -6,7 +7,7 @@ const generateTokenAndSetCookie = require("../lib/utils/generateToken");
 const signup = async (req,res) =>{
     try {
     //ZOD:
-    const response = userSchema.safeParse(req.body);
+    const response = userSignUpSchema.safeParse(req.body);
     if(!response.success){
         res.status(411).json({
             message: "Wrong Input for Sigup"
@@ -64,16 +65,65 @@ const signup = async (req,res) =>{
 }
 
 const login = async (req,res) =>{
-    res.send('login');
+    try {
+        
+        const response = userSignInSchema.safeParse(req.body);
+        if(!response.success){
+            res.status(411).json({
+                message: "Wrong Input for Login"
+            });
+            return;
+        }
+
+        const user = await User.findOne({ username: req.body.username})
+        const isPasswordCorrect = await bcrypt.compare(req.body.password, user?.password || "");
+        
+        if(!user ||!isPasswordCorrect){
+            return res.status(400).json({ message: "Invalid username or password" });
+        }
+
+        generateTokenAndSetCookie(user._id, res);
+
+        return res.status(200).json({
+            _id: user._id,
+            fullname: user.fullname,
+            username: user.username,
+            email: user.email,
+            followers: user.followers,
+            following: user.following,
+            profileImg: user.profileImg,
+            coverImg: user.coverImg
+
+        });
+    } catch (error) {
+        console.log(error.message);
+        return res.status(500).json({ message: "Internal Server Error" });    
+    }
 }
 
 const logout = async (req,res) =>{
-    res.send('logout');
+    try {
+        res.cookie("jwt", "", {maxAge: 0})
+        res.status(200).json({msg: "Logged out successfully"})
+    } catch (error) {
+        console.log("Error in logout controller", error.message);
+        return res.status(500).json({ message: "Internal Server Error" });
+    }
 }
 
+const getMe = async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id).select("-password");
+        res.status(200).json({user});
+    } catch (error) {
+        console.log("Error in getMe route", error.message);
+        return res.status(500).json({ message: "Internal Server Error" });
+    }
+}
 
 module.exports = {
     signup,
     login,
-    logout
+    logout,
+    getMe
 }

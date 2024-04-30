@@ -1,12 +1,16 @@
 const zod = require('zod');
 
-const userSchema = zod.object({
+const userSignUpSchema = zod.object({
   fullname: zod.string(),
   username: zod.string(),
   password: zod.string().min(6),
   email: zod.string().email(),
 });
 
+const userSignInSchema = zod.object({
+  username: zod.string(),
+  password: zod.string().min(6),
+});
 
-
-module.exports = userSchema;
+module.exports =  userSignUpSchema;
+module.exports =  userSignInSchema;
