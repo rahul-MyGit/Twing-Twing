@@ -1,5 +1,9 @@
+const { v2 } = require("cloudinary");
+const bcrypt = require("bcryptjs");
+
 const Notification = require("../model/notification");
 const User = require("../model/userModel");
+
 const getUserProfile = async (req, res)=>{
     const {username} = req.params;
 
@@ -87,7 +91,66 @@ const getSuggestedUsers = async (req, res) => {
 }
 
 const updateUserProfile = async (req,res)=>{
-    
+    //TODO: use zod here and upload that packkage to use on FE
+    const {fullname, email, username, currentPassword, newPassword,bio, link} = req.body;
+    let {profileImg, coverImg} = req.body;
+
+    const userId = req.user._id;
+    try {
+        let user = await User.findById(userId);
+        if(!user){ return res.status(404).json({msg: "User not found"})}   
+
+        if((!newPassword && currentPassword) || (!currentPassword && newPassword)){
+            return res.status(400).json({error: "Enter both old password and new password"})
+        }
+
+        if(currentPassword && newPassword){
+            const isCorrect = await bcrypt.compare(currentPassword, user.password)
+            if(!isCorrect){ return res.status(400).json({error: "Current Password entered is incorrect"})}
+
+            if(newPassword.length < 6){
+                return res.status(400).json({error: "New password must be atleast 6 characters long"});  
+            }
+
+            const salt = await bcrypt.genSalt(10);
+            user.password = await bcrypt.hash(newPassword,salt);
+        }
+
+        if(profileImg){
+            if(user.profileImg){
+                await v2.uploader.destroy(user.profileImg.split("/").pop().split(".")[0])     //delete img in cloudinary [as destroyer only need the id present in url]
+            }
+
+            const uploadedRes = await v2.uploader.upload(profileImg)
+            profileImg = uploadedRes.secure_url;
+        }
+
+        if(coverImg){
+            if(user.coverImg){
+                await v2.uploader.destroy(user.coverImg.split("/").pop().split(".")[0])
+            }
+
+            const uploadedRes = await v2.uploader.upload(coverImg)
+            coverImg = uploadedRes.secure_url;
+        }
+
+        user.fullname = fullname || user.fullname;
+        user.email = email || user.email;
+        user.username = username || user.username;
+        user.bio = bio || user.bio;
+        user.link = link || user.link;
+        user.profileImg = profileImg || user.profileImg;
+        user.coverImg = coverImg || user.coverImg;
+
+        user = await user.save();
+        user.password = null;
+
+        return res.status(200).json(user); 
+
+    } catch (error) {
+        console.log("Error while Updating user", error.message);
+        res.status(500).json({message: "Internal Server Error"});   
+    }
 }
 
 module.exports = {
