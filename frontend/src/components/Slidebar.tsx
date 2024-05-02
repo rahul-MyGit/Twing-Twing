@@ -5,6 +5,15 @@ import { IoNotifications } from "react-icons/io5";
 import { FaUser } from "react-icons/fa";
 import { BiLogOut } from "react-icons/bi";
 
+
+// Slidebar.propTypes = {
+//     data: PropTypes.shape({
+//         fullname: PropTypes.string.isRequired,
+//         username: PropTypes.string.isRequired,
+//         profileImg: PropTypes.string
+//     }).isRequired
+// };
+
 function Slidebar() {
     const data = {
         fullname: "Rahul Gujjar",
