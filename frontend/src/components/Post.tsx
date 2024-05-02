@@ -8,7 +8,7 @@ interface Props {
   post: PostData
 }
 function Post({post}: Props) {
-  const [comment, setComment] = useState("");
+  const [comment, setComment] = useState<string>("");
 	const postOwner = post.user;
 	const isLiked = false;
 
@@ -62,8 +62,7 @@ function Post({post}: Props) {
 					</div>
 					<div className='flex justify-between mt-3'>
 						<div className='flex gap-4 items-center w-2/3 justify-between'>
-							<div
-								className='flex gap-1 items-center cursor-pointer group'
+							<div className='flex gap-1 items-center cursor-pointer group'
 								onClick={() => (document.getElementById("comments_modal" + post._id) as HTMLDialogElement)?.showModal()}
 							>
 								<FaRegComment className='w-4 h-4  text-slate-500 group-hover:text-sky-400' />
@@ -71,7 +70,7 @@ function Post({post}: Props) {
 									{post.comments.length}
 								</span>
 							</div>
-							{/* We're using Modal Component from DaisyUI */}
+							{/* Modal Component from DaisyUI */}
 							<dialog id={`comments_modal${post._id}`} className='modal border-none outline-none'>
 								<div className='modal-box rounded border border-gray-600'>
 									<h3 className='font-bold text-lg mb-4'>COMMENTS</h3>
@@ -102,8 +101,7 @@ function Post({post}: Props) {
 											</div>
 										))}
 									</div>
-									<form
-										className='flex gap-2 items-center mt-4 border-t border-gray-600 pt-2'
+									<form className='flex gap-2 items-center mt-4 border-t border-gray-600 pt-2'
 										onSubmit={handlePostComment}
 									>
 										<textarea

@@ -4,6 +4,7 @@ import Signup from "./pages/auth/Signup"
 import Login from "./pages/auth/Login"
 import Slidebar from "./components/Slidebar"
 import RightPanel from "./components/RightPanel"
+import NotificationPage from "./pages/notification/Notifications"
 
 function App() {
 
@@ -16,7 +17,7 @@ function App() {
        <Route path="/" element={<Home />} />
        <Route path="/signup" element={<Signup />}/>
        <Route path="/login" element={<Login />}/>
-
+       <Route path="/notifications" element={<NotificationPage />}/>
       </Routes>
       <RightPanel />
     </div>
