@@ -18,7 +18,7 @@ function Slidebar() {
     const data = {
         fullname: "Rahul Gujjar",
         username: "rahul_myTweet",
-        profileImg: "../../public/avatars/boy1.png"
+        profileImg: "/avatars/boy1.png"
     };
 
   return (
