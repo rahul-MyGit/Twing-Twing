@@ -19,7 +19,7 @@ function App() {
        <Route path="/signup" element={<Signup />}/>
        <Route path="/login" element={<Login />}/>
        <Route path="/notifications" element={<NotificationPage />}/>
-       <Route path="/profile" element={<ProfilePage />} />
+       <Route path="/profile/:username" element={<ProfilePage />} />
       </Routes>
       <RightPanel />
     </div>
