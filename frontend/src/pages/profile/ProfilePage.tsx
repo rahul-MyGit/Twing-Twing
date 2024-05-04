@@ -7,6 +7,7 @@ import { POSTS } from "../../utils/db/dummy";
 import { MdEdit } from "react-icons/md";
 import { IoCalendarOutline } from "react-icons/io5";
 import EditProfileModal from "./EditProfile";
+import { useQuery } from "@tanstack/react-query";
 
 
 interface UserType {
@@ -21,6 +22,7 @@ interface UserType {
     followers: string[];
 }
 function ProfilePage() {
+
     const [coverImg, setCoverImg] = useState<string | null>(null);
     const [profileImg, setProfileImg] = useState<string | null>(null);
     const [feedType, setFeedType] = useState<string>("posts");

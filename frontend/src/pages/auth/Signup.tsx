@@ -4,7 +4,9 @@ import XSvg from "../../components/X";
 import { MdDriveFileRenameOutline, MdOutlineMail, MdPassword } from "react-icons/md";
 import { FaUser } from "react-icons/fa";
 import { Link } from "react-router-dom";
-
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import axios, { AxiosError } from "axios";
+import toast from "react-hot-toast";
 
 
 interface FormInput {
@@ -13,7 +15,12 @@ interface FormInput {
   password: string;
   fullname: string;
 }
+
+
+
 const Signup = () => {
+  const queryClient = useQueryClient();
+
   const [formData, setFormData] = useState<FormInput>({
     username: "",
     email: "",
@@ -21,9 +28,43 @@ const Signup = () => {
     fullname: ""
   })
 
+  const {mutate, isError, isPending, error} = useMutation({
+    mutationFn: async ({email, username, fullname, password} : FormInput) => {
+      try {
+        const res = await axios.post("/api/auth/signup",{
+          email,
+          username,
+          fullname,
+          password
+        },{
+          headers: {
+            "Content-Type": "application/json"
+          }
+        })
+
+        toast.success("Account created successfully");
+        queryClient.invalidateQueries({queryKey: ["authUser"]});
+        return res.data;
+      } catch (error) {
+        //TODO: fix warning
+        console.log(error);
+        
+        if (axios.isAxiosError(error)) {
+          const axiosError: AxiosError = error;
+          const errorMsg = axiosError.response?.data?.message;
+          toast.error(errorMsg);
+        } else {
+          console.error(error);
+          toast.error("An unexpected error occurred");
+        }
+        return;
+      }
+    },
+  });
+ 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) =>{
     e.preventDefault();
-    console.log(formData);
+    mutate(formData);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) =>{
@@ -35,9 +76,6 @@ const Signup = () => {
     }));
   };
 
-  
-
-  const isError = false;
   
   return (
     <div className='max-w-screen-xl mx-auto flex  justify-center h-screen px-10'>
@@ -98,8 +136,10 @@ const Signup = () => {
 						/>
 					</label>
 
-          <button className="btn rounded-full btn-primary text-white">Sign up</button>
-          {isError && <p className="text-red-500">Something went wrong</p>}
+          <button className="btn rounded-full btn-primary text-white">
+            {isPending ? 'Loading...' : "Sign up"}
+          </button>
+          {isError && <p className="text-red-500">{error.message}</p>}
         </form>
 
         <div className='flex flex-col lg:w-2/3 gap-2 mt-4'>

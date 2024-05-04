@@ -2,6 +2,9 @@ import React, { useState } from "react"
 import XSvg from "../../components/X";
 import { MdOutlineMail, MdPassword } from "react-icons/md";
 import { Link } from "react-router-dom";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import axios, { AxiosError } from "axios";
+import toast from "react-hot-toast";
 
 
 interface FormInputs {
@@ -14,9 +17,44 @@ function Login() {
     password: "",
   })
 
+  const queryClient = useQueryClient();
+  const {mutate: loginMutation, isError, isPending, error} = useMutation({
+    mutationFn: async ({username, password} : FormInputs) => {
+      try {
+        const res = await axios.post("/api/auth/login",{
+          username,
+          password
+        },{
+          headers: {
+            "Content-Type": "application/json"
+          }
+        })
+
+        // toast.success("Account created successfully");
+        //re fetch data for updating 
+        queryClient.invalidateQueries({queryKey: ["authUser"]});
+        return res.data;
+      } catch (error) {
+        //TODO: fix warning
+        console.log(error);
+        
+        if (axios.isAxiosError(error)) {
+          const axiosError: AxiosError = error;
+          const errorMsg = axiosError.response?.data?.message;
+          toast.error(errorMsg);
+        } else {
+          console.error(error);
+          toast.error("An unexpected error occurred");
+
+        }
+        return;
+      }
+    },
+  });
+
   const handleSubmit = (e : React.FormEvent<HTMLFormElement>) =>{
     e.preventDefault()
-    console.log(formData)
+	loginMutation(formData);
   }
 
   const handleInputChange = (e : React.ChangeEvent<HTMLInputElement>) =>{
@@ -26,8 +64,6 @@ function Login() {
       [name]:  value
     })
   )}
-
-  const isError = false;
 
   return (
       <div className='max-w-screen-xl mx-auto flex justify-center h-screen'>
@@ -61,8 +97,10 @@ function Login() {
 							value={formData.password}
 						/>
 					</label>
-					<button className='btn rounded-full btn-primary text-white'>Login</button>
-					{isError && <p className='text-red-500'>Something went wrong</p>}
+					<button className='btn rounded-full btn-primary text-white'>
+						{isPending ? 'Loading ...' : 'Login'}
+					</button>
+					{isError && <p className='text-red-500'>{error.message}</p>}
 				</form>
 				<div className='flex flex-col gap-2 mt-4'>
 					<p className='text-white text-lg'>{"Don't"} have an account?</p>

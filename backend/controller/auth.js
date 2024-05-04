@@ -9,10 +9,9 @@ const signup = async (req,res) =>{
     //ZOD:
     const response = userSignUpSchema.safeParse(req.body);
     if(!response.success){
-        res.status(411).json({
+        return res.status(411).json({
             message: "Wrong Input for Sigup"
         });
-        return;
     }
 
     //USER EXISTS:
