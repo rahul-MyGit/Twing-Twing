@@ -26,6 +26,7 @@ function Slidebar() {
 
 				if (!res.ok) throw new Error(data.error || "Something went wrong")
 			} catch (error) {
+		//TODO: handle error type
 				throw new Error(error);
 			}
 		},

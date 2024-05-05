@@ -1,11 +1,11 @@
 import { FormEvent, useState } from "react";
-import { Post as PostData } from "../utils/db/dummy"
+import { Post as PostType } from "../utils/db/dummy"
 import { Link } from "react-router-dom";
 import { FaRegBookmark, FaRegComment, FaRegHeart, FaTrash } from "react-icons/fa";
 import { BiRepost } from "react-icons/bi";
 
 interface Props {
-  post: PostData
+  post: PostType
 }
 function Post({post}: Props) {
   const [comment, setComment] = useState<string>("");
