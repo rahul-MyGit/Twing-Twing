@@ -25,7 +25,7 @@ export interface Comment {
 export const POSTS : Post[] = [
 	{
 		_id: "1",
-		text: "Let's build a fullstack WhatsApp clone with NEXT.JS 14 😍",
+		text: "Let's build a fullstack app",
 		img: "/posts/post1.png",
 		user: {
 			_id: "1",
@@ -120,29 +120,3 @@ export interface User {
     username: string;
     profileImg: string;
 }
-export const USERS_FOR_RIGHT_PANEL = [
-	{
-		_id: "1",
-		fullname: "John Doe",
-		username: "johndoe",
-		profileImg: "/avatars/boy2.png",
-	},
-	{
-		_id: "2",
-		fullname: "Jane Doe",
-		username: "janedoe",
-		profileImg: "/avatars/girl1.png",
-	},
-	{
-		_id: "3",
-		fullname: "Bob Doe",
-		username: "bobdoe",
-		profileImg: "/avatars/boy3.png",
-	},
-	{
-		_id: "4",
-		fullname: "Daisy Doe",
-		username: "daisydoe",
-		profileImg: "/avatars/girl2.png",
-	},
-];
