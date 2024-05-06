@@ -24,7 +24,12 @@ const deleteNotifications = async (req,res)=>{
 
         await Notification.deleteMany({to: userId});
 
-        res.status(200).json({message: "Notifications deleted successfully"});
+        const notifications = await Notification.find({to: userId}).populate({
+            path: "from",
+            select: "username profileImg"
+        })
+
+        res.status(200).json(notifications);
     } catch (error) {
         console.log("Error in deleteNotifications", error.message);
         res.status(500).json({message: "Internal server error"});
