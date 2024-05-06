@@ -18,7 +18,6 @@ function App() {
       try {
         const res = await axios.get("/api/auth/me");
 
-        console.log("Current user is:", res.data);
         
         return res.data.user;
       } catch (error) {

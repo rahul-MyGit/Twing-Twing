@@ -31,9 +31,7 @@ function CreatePost() {
 				headers: {
 					"Content-Type": "application/json"
                 }
-			});
-			console.log(res);
-			
+			});			
 			
             return res.data;
 		} catch (error) {

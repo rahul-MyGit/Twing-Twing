@@ -25,16 +25,11 @@ function Post({post}: Props) {
 			const res = await axios.delete(`/api/posts/${post._id}`)
 
 			return res.data;
-		} catch (error) {
+		} catch (error) {			
 			if (axios.isAxiosError(error)){
 				throw error;
 			} else{
-				
-				if (axios.isAxiosError(error)){
-					throw error;
-				} else{
-					throw new Error('Server error');
-				}
+				throw new Error('Server error');
 			}
 		}
 	},
