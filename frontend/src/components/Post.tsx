@@ -3,22 +3,52 @@ import { Post as PostType } from "../utils/db/dummy"
 import { Link } from "react-router-dom";
 import { FaRegBookmark, FaRegComment, FaRegHeart, FaTrash } from "react-icons/fa";
 import { BiRepost } from "react-icons/bi";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { User as DataType } from "../utils/db/dummy";
+import axios from "axios";
+import toast from "react-hot-toast";
+import LoadingSpinner from "./LoadingSpinner";
 
 interface Props {
   post: PostType
 }
+
 function Post({post}: Props) {
   const [comment, setComment] = useState<string>("");
+
+  const {data:authUser} = useQuery<DataType>({queryKey: ["authUser"]});
+  const queryClient = useQueryClient();
+
+  const {mutate: deletePost, isPending} = useMutation({
+	mutationFn: async () => {
+		try {
+			const res = await axios.delete(`/api/posts/${post._id}`)
+
+			return res.data;
+		} catch (error) {
+				toast.error("Post deletion failed");
+		}
+	},
+	onSuccess: ()=>{
+		toast.success("Post deleted successfully");
+        //TODO: Fetching again
+
+		queryClient.invalidateQueries({queryKey: ["posts"]});    //define in Posts.tsx
+	}
+  })
+
 	const postOwner = post.user;
 	const isLiked = false;
 
-	const isMyPost = true;
+	const isMyPost = authUser?._id === post.user._id;
 
 	const formattedDate = "1h";
 
 	const isCommenting = false;
 
-	const handleDeletePost = () => {};
+	const handleDeletePost = () => {
+		deletePost();
+	};
 
 	const handlePostComment = (e: FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
@@ -46,7 +76,8 @@ function Post({post}: Props) {
 						</span>
 						{isMyPost && (
 							<span className='flex justify-end flex-1'>
-								<FaTrash className='cursor-pointer hover:text-red-500' onClick={handleDeletePost} />
+								{!isPending && <FaTrash className='cursor-pointer hover:text-red-500' onClick={handleDeletePost} />}
+								{isPending && (<LoadingSpinner size="sm"/>)}
 							</span>
 						)}
 					</div>

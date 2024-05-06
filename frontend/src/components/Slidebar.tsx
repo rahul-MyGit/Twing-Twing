@@ -6,13 +6,7 @@ import { FaUser } from "react-icons/fa";
 import { BiLogOut } from "react-icons/bi";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
-
-interface DataType {
-	_id: string;
-    fullname: string;
-    username: string;
-    profileImg: string;
-}
+import { User as DataType } from "../utils/db/dummy";
 
 function Slidebar() {
 	const queryClient = useQueryClient()

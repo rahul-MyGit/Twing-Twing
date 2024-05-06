@@ -7,7 +7,7 @@ import { POSTS } from "../../utils/db/dummy";
 import { MdEdit } from "react-icons/md";
 import { IoCalendarOutline } from "react-icons/io5";
 import EditProfileModal from "./EditProfile";
-import { useQuery } from "@tanstack/react-query";
+// import { useQuery } from "@tanstack/react-query";
 
 
 interface UserType {
