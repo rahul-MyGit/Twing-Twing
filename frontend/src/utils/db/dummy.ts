@@ -10,6 +10,8 @@ export interface Post {
     };
     comments: Comment[];
     likes: string[];
+	createdAt: Date;
+	updatedAt: Date;
 }
 
 export interface Comment {

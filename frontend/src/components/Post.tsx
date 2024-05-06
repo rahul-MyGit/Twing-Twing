@@ -8,6 +8,7 @@ import { User as DataType } from "../utils/db/dummy";
 import axios from "axios";
 import toast from "react-hot-toast";
 import LoadingSpinner from "./LoadingSpinner";
+import { formatPostDate } from "../utils/date";
 
 interface Props {
   post: PostType
@@ -120,7 +121,7 @@ function Post({post}: Props) {
 
 	const isMyPost = authUser?._id === post.user._id;
 
-	const formattedDate = "1h";
+	const formattedDate = formatPostDate(post.createdAt);
 
 	const handleDeletePost = () => {
 		deletePost();
