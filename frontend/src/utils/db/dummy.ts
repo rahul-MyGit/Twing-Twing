@@ -15,11 +15,7 @@ export interface Post {
 export interface Comment {
     _id: string;
     text: string;
-    user: {
-        username: string;
-        profileImg: string;
-        fullname: string;
-    };
+    user: User
 }
 
 export const POSTS : Post[] = [

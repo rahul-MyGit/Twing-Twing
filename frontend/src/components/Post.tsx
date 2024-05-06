@@ -14,7 +14,7 @@ interface Props {
 }
 
 function Post({post}: Props) {
-  const [comment, setComment] = useState<string>("");
+  const [comment, setComment] = useState<string>();
 
   const {data:authUser} = useQuery<DataType>({queryKey: ["authUser"]});
   const queryClient = useQueryClient();
@@ -61,6 +61,7 @@ function Post({post}: Props) {
 		queryClient.setQueryData(["posts"], (oldData: PostType[]) => {
 			return oldData.map(p =>{
 				if(p._id === post._id){
+					console.log(post);
 					return {...p, likes:updatedLikes}
 				}
 				return p;
@@ -72,6 +73,48 @@ function Post({post}: Props) {
     }
   })
 
+  const {mutate: commentPost, isPending: isCommenting} = useMutation({
+	mutationFn: async (comment : string)=>{
+		try {
+			
+			const res = await axios.put(`/api/posts/comment/${post._id}`,{
+				text: comment
+			},{
+				headers: {
+                    "Content-Type": "application/json"
+                }
+			});
+			return res.data;
+		} catch (error) {
+			console.log(error);
+			
+			if(axios.isAxiosError(error)){
+				throw error;
+			}else{
+				throw new Error('Server error');
+			}
+		}
+	},
+	onSuccess: (updated: PostType)=>{
+		// toast.success("commented successfully");
+		setComment("");
+		queryClient.setQueryData(["posts"], (oldData : PostType[]) => {
+			
+            return oldData.map(p => {
+                if (p._id === post._id) {
+
+                    return {...p, comments: updated};
+					
+                }
+                return p;
+            });
+        });
+	},
+	onError: ()=>{
+		toast.error("commenting failed");
+	}
+  })
+
 	const postOwner = post.user;
 	const isLiked = post.likes.includes(authUser?._id.toString() ?? '');
 
@@ -79,20 +122,21 @@ function Post({post}: Props) {
 
 	const formattedDate = "1h";
 
-	const isCommenting = false;
-
 	const handleDeletePost = () => {
 		deletePost();
 	};
 
 	const handlePostComment = (e: FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
+		if (isCommenting || !comment) return;
+		commentPost(comment);
 	};
 
 	const handleLikePost = () => {
 		if(isLiking) return;
 		likePost();
 	};
+
 	return (
 		<>
 			<div className='flex gap-2 items-start p-4 border-b border-gray-700'>
@@ -193,11 +237,11 @@ function Post({post}: Props) {
 								<span className='text-sm text-slate-500 group-hover:text-green-500'>0</span>
 							</div>
 							<div className='flex gap-1 items-center group cursor-pointer' onClick={handleLikePost}>
-								{isLiking && <LoadingSpinner />}
+								{isLiking && <LoadingSpinner size="sm" />}
 								{!isLiked && !isLiking && (
 									<FaRegHeart className='w-4 h-4 cursor-pointer text-slate-500 group-hover:text-pink-500' />
 								)}
-								{isLiked && !isLiking && <FaRegHeart className='w-4 h-4 cursor-pointer text-pink-500 ' />}
+								{isLiked && !isLiking && (<FaRegHeart className='w-4 h-4 cursor-pointer text-pink-500 ' /> )}
 
 								<span
 									className={`text-sm group-hover:text-pink-500 ${

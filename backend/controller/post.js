@@ -68,11 +68,11 @@ const commentOnPost = async (req,res)=>{
         if(!text){
             return res.status(400).json({message: "Text is required"});
         }
-        const post = await Post.findById(postId);
+        const post = await Post.findById(postId)
+
         if(!post){
             return res.status(404).json({message: "Post not found"});
         }
-
         const comment = {
             user: userId,
             text
@@ -80,7 +80,12 @@ const commentOnPost = async (req,res)=>{
         post.comments.push(comment);
         await post.save();
 
-        res.status(200).json(post);
+        const updatedComment = await Post.findById(postId).populate({
+            path: "comments.user",
+            select: "-password"
+        })
+
+        res.status(200).json(updatedComment.comments);
 
     } catch (error) {
         console.log("Error while posting a comment: ",error.message);
