@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import Post from "./Post";
 import PostSkeleton from "./PostSkeleton";
-import axios, { AxiosError } from "axios";
+import axios, { isAxiosError } from "axios";
 import toast from "react-hot-toast";
 import { Post as PostType} from "../utils/db/dummy";
 import { useEffect } from "react";
@@ -26,8 +26,7 @@ function Posts({feedType}: {feedType: string}){
 
 		} catch (error) {
 			if (axios.isAxiosError(error)) {
-			const axiosError: AxiosError = error;
-			const errorMsg = axiosError.response?.data?.message || "An unexpected error occurred";
+			const errorMsg = isAxiosError(error) ? error.response?.data?.message : "An unexpected error occurred";
 			toast.error(errorMsg);
 			} else {
 			console.error(error);

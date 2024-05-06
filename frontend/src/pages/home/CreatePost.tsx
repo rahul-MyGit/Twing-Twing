@@ -1,25 +1,64 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import axios from "axios";
 import React, { useRef, useState } from "react";
+import toast from "react-hot-toast";
 import { BsEmojiSmileFill } from "react-icons/bs";
 import { CiImageOn } from "react-icons/ci";
 import { IoCloseSharp } from "react-icons/io5";
+import { User } from "../../utils/db/dummy";
 
+interface MutateType {
+	text: string;
+    img: string | null;
+}
 function CreatePost() {
   const [text, setText] = useState<string>("");
   const [img, setImg] = useState<null | string>(null);
 
   const imgRef = useRef<HTMLInputElement>(null);
 
-  const isPending: boolean = false;
-  const isError: boolean = false;
+  const {data:authUser} : {data: User | undefined} = useQuery({queryKey: ["authUser"]});
+  const queryClient = useQueryClient();
 
-  const data : {profileImg: string} = {
-    profileImg: "/avatars/boy1.png"
-  }
+
+  const {mutate: createPost, isPending, isError, error} = useMutation({
+	mutationFn: async ({text, img} : MutateType) => {
+		try {
+			const res = await axios.post('/api/posts/create',{
+				text,
+				img
+			},{
+				headers: {
+					"Content-Type": "application/json"
+                }
+			});
+			console.log(res);
+			
+			
+            return res.data;
+		} catch (error) {
+			if (axios.isAxiosError(error)){
+			throw error;
+			} else{
+			throw new Error('Server error');
+			}
+		}
+	},
+	onSuccess: ()=>{
+		toast.success("Post created successfully");
+		// refetching
+		queryClient.invalidateQueries({queryKey:["posts"]})
+		setText("");
+		setImg(null);
+	},
+	onError: ()=>{
+        toast.error("Post creation failed");
+    }
+  })
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>)=>{
     e.preventDefault();
-    alert("Post created successfully")
-    setText("");
-    setImg(null);
+    createPost({text, img})
   }
 
   const handleImgChange = (e: React.ChangeEvent<HTMLInputElement>)=>{
@@ -38,7 +77,7 @@ function CreatePost() {
     <div className='flex p-4 items-start gap-4 border-b border-gray-700'>
       <div className='avatar'>
 				<div className='w-8 rounded-full'>
-					<img src={data.profileImg || "/avatar-placeholder.png"} />
+					<img src={authUser?.profileImg || "/avatar-placeholder.png"} />
 				</div>
 			</div>
 
@@ -79,7 +118,7 @@ function CreatePost() {
 						{isPending ? "Posting..." : "Post"}
 					</button>
 				</div>
-				{isError && <div className='text-red-500'>Something went wrong</div>}
+				{isError && !img && !text && <div className='text-red-500'>{axios.isAxiosError(error)? error.response?.data.message: "Server Error"}</div>}
 			</form>
     </div>
   )

@@ -5,7 +5,7 @@ import { MdDriveFileRenameOutline, MdOutlineMail, MdPassword } from "react-icons
 import { FaUser } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import axios, { AxiosError } from "axios";
+import axios, { isAxiosError } from "axios";
 import toast from "react-hot-toast";
 
 
@@ -46,12 +46,8 @@ const Signup = () => {
         queryClient.invalidateQueries({queryKey: ["authUser"]});
         return res.data;
       } catch (error) {
-        //TODO: fix warning
-        console.log(error);
-        
         if (axios.isAxiosError(error)) {
-          const axiosError: AxiosError = error;
-          const errorMsg = axiosError.response?.data?.message;
+          const errorMsg = isAxiosError(error)? error.response?.data?.message : "Server is not responding";
           toast.error(errorMsg);
         } else {
           console.error(error);

@@ -26,15 +26,26 @@ function Post({post}: Props) {
 
 			return res.data;
 		} catch (error) {
-				toast.error("Post deletion failed");
+			if (axios.isAxiosError(error)){
+				throw error;
+			} else{
+				
+				if (axios.isAxiosError(error)){
+					throw error;
+				} else{
+					throw new Error('Server error');
+				}
+			}
 		}
 	},
 	onSuccess: ()=>{
 		toast.success("Post deleted successfully");
-        //TODO: Fetching again
 
 		queryClient.invalidateQueries({queryKey: ["posts"]});    //define in Posts.tsx
-	}
+	},
+	onError: ()=>{
+        toast.error("Post deletion failed");
+    }
   })
 
 	const postOwner = post.user;

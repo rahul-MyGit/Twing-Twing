@@ -7,21 +7,18 @@ import { BiLogOut } from "react-icons/bi";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { User as DataType } from "../utils/db/dummy";
+import axios, { isAxiosError } from "axios";
 
 function Slidebar() {
 	const queryClient = useQueryClient()
 	const {mutate: logoutMutate} = useMutation({
 		mutationFn : async () =>{
 			try {
-				const res = await fetch("/api/auth/logout", {
-					method: "POST",
-				})
-				const data = await res.json();
-
-				if (!res.ok) throw new Error(data.error || "Something went wrong")
+				await axios.post("/api/auth/logout")
 			} catch (error) {
-		//TODO: handle error type
-				throw new Error(error);
+		console.log(error);
+				const errorMsg = isAxiosError(error) ? error.response?.data?.message : "Something went wrong";
+				toast.error(errorMsg);
 			}
 		},
 		onSuccess: ()=>{
@@ -29,9 +26,6 @@ function Slidebar() {
 			//Fetching again
 			queryClient.invalidateQueries({queryKey: ["authUser"]});
 		},
-		onError: ()=>{
-            toast.error("Logout failed");
-        }
 	});
 	let value = false;
 	const { data: { username, fullname, profileImg } = {} }: { data?: Partial<DataType> } = useQuery({ queryKey: ["authUser"] });
