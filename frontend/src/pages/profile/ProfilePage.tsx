@@ -48,7 +48,7 @@ function ProfilePage() {
 	})
 
 
-	const {mutate:updateProfile, isPending:isUpdatingProfile} = useMutation({
+	const {mutateAsync:updateProfile, isPending:isUpdatingProfile} = useMutation({
 		mutationFn: async () => {
 			try {
 				const res = await axios.put(`/api/users/update`,{
@@ -172,7 +172,11 @@ function ProfilePage() {
 								{(coverImg || profileImg) && (
 									<button
 										className='btn btn-primary rounded-full btn-sm text-white px-4 ml-2'
-										onClick={() => updateProfile()}
+										onClick={async () => {
+											await updateProfile();
+											setCoverImg(null);
+											setProfileImg(null);
+										}}
 									>
 										{isUpdatingProfile ? <LoadingSpinner /> : "Update"}
 									</button>
