@@ -6,13 +6,16 @@ import toast from "react-hot-toast";
 import { Post as PostType} from "../utils/db/dummy";
 import { useEffect } from "react";
 
-function Posts({feedType}: {feedType: string}){
-
+function Posts({feedType, username, userId}: {feedType?: string, username?: string, userId?: string}){
+	console.log(feedType, username, userId);
+	
   const getPostEndPoint = () =>{
 	switch(feedType){
 		case "forYou": return '/api/posts/all';
 		case "following": return '/api/posts/following';
-		default: return 'api/posts/all';    //TODO: update later
+		case "posts": return `/api/posts/user/${username}`;
+		case "likes": return `/api/posts/likes/${userId}`;
+		default: return 'api/posts/all'; 
 	}
   }
 
@@ -40,7 +43,7 @@ function Posts({feedType}: {feedType: string}){
   useEffect(()=>{
 	refetch();
 
-  },[feedType, refetch])
+  },[feedType, refetch, username])
 
   return (
     <>
@@ -51,7 +54,7 @@ function Posts({feedType}: {feedType: string}){
 					<PostSkeleton />
 				</div>
 			)}
-			{!isLoading && !isRefetching &&posts?.length === 0 && <p className='text-center my-4'>No posts in this tab. Switch 👻</p>}
+			{!isLoading && !isRefetching &&posts?.length === 0 && <p className='text-center my-4'>No posts 👻</p>}
 			{!isLoading && !isRefetching && posts && (
 				<div>
 					{posts.map((post) => (

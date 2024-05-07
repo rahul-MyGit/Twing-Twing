@@ -1,26 +1,19 @@
-import React, { useRef, useState } from "react"
+import React, { useEffect, useRef, useState } from "react"
 import ProfileHeaderSkeleton from "../../components/ProfileHeaderSkeleton";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { FaArrowLeft, FaLink } from "react-icons/fa";
 import Posts from "../../components/Posts";
-import { POSTS } from "../../utils/db/dummy";
 import { MdEdit } from "react-icons/md";
 import { IoCalendarOutline } from "react-icons/io5";
 import EditProfileModal from "./EditProfile";
+import { useQuery } from "@tanstack/react-query";
+import axios from "axios";
+import { formatMemberSinceDate } from "../../utils/date";
+import {UserType} from "../../utils/db/dummy";
 // import { useQuery } from "@tanstack/react-query";
 
 
-interface UserType {
-    _id: string;
-    fullName: string;
-    username: string;
-    profileImg: string;
-    coverImg: string;
-    bio: string;
-    link: string;
-    following: string[];
-    followers: string[];
-}
+
 function ProfilePage() {
 
     const [coverImg, setCoverImg] = useState<string | null>(null);
@@ -30,20 +23,24 @@ function ProfilePage() {
     const coverImgRef = useRef<HTMLInputElement>(null);
     const profileImgRef = useRef<HTMLInputElement>(null);
 
-    const isLoading = false;
     const isMyProfile = true;
+	const {username} = useParams();
 
-    const user : UserType = {
-		_id: "1",
-		fullName: "John Doe",
-		username: "johndoe",
-		profileImg: "/avatars/boy2.png",
-		coverImg: "/cover.png",
-		bio: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-		link: "https://youtube.com/@asaprogrammer_",
-		following: ["1", "2", "3"],
-		followers: ["1", "2", "3"],
-	};
+
+
+	const {data:user, isLoading, refetch, isRefetching} = useQuery<UserType>({
+		queryKey: ["userProfile"],
+		queryFn: async () => {
+			try {
+				const res = await axios.get(`/api/users/profile/${username}`)
+				return res.data;
+			} catch (error) {
+				if (axios.isAxiosError(error)) throw error;
+				else throw new Error("server not responding")
+			}
+		}
+
+	})
 
     const handleImgChange = (e : React.ChangeEvent<HTMLInputElement>, state: "coverImg" | "profileImg")=>{
         const file = e.target.files?.[0];
@@ -57,22 +54,26 @@ function ProfilePage() {
         }
     }
 
+	useEffect(()=>{
+		refetch()
+	},[refetch, username]);
+
   return (
     <>
     <div className='flex-[4_4_0]  border-r border-gray-700 min-h-screen '>
 				{/* HEADER */}
-				{isLoading && <ProfileHeaderSkeleton />}
-				{!isLoading && !user && <p className='text-center text-lg mt-4'>User not found</p>}
+				{(isLoading || isRefetching) && <ProfileHeaderSkeleton />}
+				{!isLoading && !isRefetching &&  !user && <p className='text-center text-lg mt-4'>User not found</p>}
 				<div className='flex flex-col'>
-					{!isLoading && user && (
+					{!isLoading && !isRefetching && user && (
 						<>
 							<div className='flex gap-10 px-4 py-2 items-center'>
 								<Link to='/'>
 									<FaArrowLeft className='w-4 h-4' />
 								</Link>
 								<div className='flex flex-col'>
-									<p className='font-bold text-lg'>{user?.fullName}</p>
-									<span className='text-sm text-slate-500'>{POSTS?.length} posts</span>
+									<p className='font-bold text-lg'>{user?.fullname}</p>
+									<span className='text-sm text-slate-500'> posts</span>
 								</div>
 							</div>
 							{/* COVER IMG */}
@@ -142,7 +143,7 @@ function ProfilePage() {
 
 							<div className='flex flex-col gap-4 mt-14 px-4'>
 								<div className='flex flex-col'>
-									<span className='font-bold text-lg'>{user?.fullName}</span>
+									<span className='font-bold text-lg'>{user?.fullname}</span>
 									<span className='text-sm text-slate-500'>@{user?.username}</span>
 									<span className='text-sm my-1'>{user?.bio}</span>
 								</div>
@@ -165,7 +166,9 @@ function ProfilePage() {
 									)}
 									<div className='flex gap-2 items-center'>
 										<IoCalendarOutline className='w-4 h-4 text-slate-500' />
-										<span className='text-sm text-slate-500'>Joined July 2021</span>
+										<span className='text-sm text-slate-500'>
+											{formatMemberSinceDate(user.createdAt)}
+										</span>
 									</div>
 								</div>
 								<div className='flex gap-2'>
@@ -202,7 +205,7 @@ function ProfilePage() {
 						</>
 					)}
 
-					<Posts />
+					<Posts feedType={feedType} username = {username} userId={user?._id}/>
 				</div>
 			</div>
 		</>
