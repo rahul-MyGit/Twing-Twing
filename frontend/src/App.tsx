@@ -13,7 +13,7 @@ import LoadingSpinner from "./components/LoadingSpinner"
 
 function App() {
   const {data: authUser, isLoading} = useQuery({
-    queryKey: ['authUser'],         //TODO: use in ProfilePage [gives unique name to our query]
+    queryKey: ['authUser'],        
     queryFn: async () => {
       try {
         const res = await axios.get("/api/auth/me");

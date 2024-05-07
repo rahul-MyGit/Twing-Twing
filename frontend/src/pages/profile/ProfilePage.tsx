@@ -6,10 +6,13 @@ import Posts from "../../components/Posts";
 import { MdEdit } from "react-icons/md";
 import { IoCalendarOutline } from "react-icons/io5";
 import EditProfileModal from "./EditProfile";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { formatMemberSinceDate } from "../../utils/date";
 import {UserType} from "../../utils/db/dummy";
+import useFollow from "../../hooks/useFollow";
+import LoadingSpinner from "../../components/LoadingSpinner";
+import toast from "react-hot-toast";
 // import { useQuery } from "@tanstack/react-query";
 
 
@@ -23,10 +26,13 @@ function ProfilePage() {
     const coverImgRef = useRef<HTMLInputElement>(null);
     const profileImgRef = useRef<HTMLInputElement>(null);
 
-    const isMyProfile = true;
+
 	const {username} = useParams();
+	const {followAndUnfollow, isPending} = useFollow();
 
 
+	const {data:authUser} = useQuery<UserType>({queryKey: ["authUser"]})
+	const queryClient = useQueryClient();
 
 	const {data:user, isLoading, refetch, isRefetching} = useQuery<UserType>({
 		queryKey: ["userProfile"],
@@ -39,8 +45,35 @@ function ProfilePage() {
 				else throw new Error("server not responding")
 			}
 		}
-
 	})
+
+
+	const {mutate:updateProfile, isPending:isUpdatingProfile} = useMutation({
+		mutationFn: async () => {
+			try {
+				const res = await axios.put(`/api/users/update`,{
+					coverImg,
+                    profileImg
+				});
+				return res.data;
+			} catch (error) {
+				if (axios.isAxiosError(error)) throw error;
+				else throw new Error("Server not responding");
+			}
+		},
+		onSuccess: ()=>{
+            toast.success("Profile updated");
+            Promise.all([
+				queryClient.invalidateQueries({queryKey: ["authUser"]}),
+				queryClient.invalidateQueries({queryKey: ["userProfile"]})
+			])
+        },
+		onError: ()=>{
+            toast.error("Failed to update profile");
+        }
+	})
+
+	const isMyProfile = authUser?._id === user?._id;
 
     const handleImgChange = (e : React.ChangeEvent<HTMLInputElement>, state: "coverImg" | "profileImg")=>{
         const file = e.target.files?.[0];
@@ -53,6 +86,8 @@ function ProfilePage() {
             reader.readAsDataURL(file);
         }
     }
+
+	const amIFollowing = authUser?.following.includes(user?._id.toString() ?? '');
 
 	useEffect(()=>{
 		refetch()
@@ -122,21 +157,24 @@ function ProfilePage() {
 								</div>
 							</div>
 							<div className='flex justify-end px-4 mt-5'>
-								{isMyProfile && <EditProfileModal />}
+								{isMyProfile && <EditProfileModal authUser={authUser}/>}
+								
 								{!isMyProfile && (
 									<button
 										className='btn btn-outline rounded-full btn-sm'
-										onClick={() => alert("Followed successfully")}
+										onClick={() => followAndUnfollow(user?._id)}
 									>
-										Follow
+										{isPending && <LoadingSpinner />}
+										{!isPending && amIFollowing && "Unfollow"}
+										{!isPending && !amIFollowing && "Follow"}
 									</button>
 								)}
 								{(coverImg || profileImg) && (
 									<button
 										className='btn btn-primary rounded-full btn-sm text-white px-4 ml-2'
-										onClick={() => alert("Profile updated successfully")}
+										onClick={() => updateProfile()}
 									>
-										Update
+										{isUpdatingProfile ? <LoadingSpinner /> : "Update"}
 									</button>
 								)}
 							</div>
@@ -154,12 +192,12 @@ function ProfilePage() {
 											<>
 												<FaLink className='w-3 h-3 text-slate-500' />
 												<a
-													href='https://youtube.com/@asaprogrammer_'
+													href= {`${user?.link}`}
 													target='_blank'
 													rel='noreferrer'
 													className='text-sm text-blue-500 hover:underline'
 												>
-													youtube.com/@asaprogrammer_
+													{user?.link}
 												</a>
 											</>
 										</div>

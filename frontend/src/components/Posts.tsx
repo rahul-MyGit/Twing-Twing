@@ -7,7 +7,6 @@ import { Post as PostType} from "../utils/db/dummy";
 import { useEffect } from "react";
 
 function Posts({feedType, username, userId}: {feedType?: string, username?: string, userId?: string}){
-	console.log(feedType, username, userId);
 	
   const getPostEndPoint = () =>{
 	switch(feedType){

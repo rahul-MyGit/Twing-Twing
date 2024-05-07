@@ -1,5 +1,9 @@
-import { useState } from "react";
-
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import axios from "axios";
+import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
+import LoadingSpinner from "../../components/LoadingSpinner";
+import {UserType} from "../../utils/db/dummy"
 interface FormType {
     fullname: string;
     username: string;
@@ -10,7 +14,8 @@ interface FormType {
     currentPassword: string;
 }
 
-const EditProfileModal = () => {
+const EditProfileModal = ({authUser}: {authUser: UserType | undefined}) => {
+	const queryClient = useQueryClient();
 	const [formData, setFormData] = useState<FormType>({
 		fullname: "",
 		username: "",
@@ -21,6 +26,36 @@ const EditProfileModal = () => {
 		currentPassword: "",
 	});
 
+	const {mutate:updateProfile, isPending:isUpdatingProfile} = useMutation({
+		mutationFn: async () => {
+			try {
+				const res = await axios.put(`/api/users/update`,{
+					fullname: formData.fullname,
+                    username: formData.username,
+                    email: formData.email,
+                    bio: formData.bio,
+                    link: formData.link,
+                    newPassword: formData.newPassword,
+                    currentPassword: formData.currentPassword,
+				});
+				return res.data;
+			} catch (error) {
+				if (axios.isAxiosError(error)) throw error;
+				else throw new Error("Server not responding");
+			}
+		},
+		onSuccess: ()=>{
+            toast.success("Profile updated");
+            Promise.all([
+				queryClient.invalidateQueries({queryKey: ["authUser"]}),
+				queryClient.invalidateQueries({queryKey: ["userProfile"]})
+			])
+        },
+		onError: ()=>{
+            toast.error("Failed to update profile");
+        }
+	})
+
 	const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const {name , value} = e.target;
 		setFormData(prevState =>({
@@ -28,6 +63,20 @@ const EditProfileModal = () => {
              [name]: value 
         }));
 	};
+
+	useEffect(()=>{
+		if(authUser) {
+			setFormData({
+                fullname: authUser.fullname,
+                username: authUser.username,
+                email: authUser.email,
+                bio: authUser.bio,
+                link: authUser.link,
+                newPassword: "",
+                currentPassword: "",
+            })
+		}
+	},[authUser]);
 
 	return (
 		<>
@@ -44,7 +93,7 @@ const EditProfileModal = () => {
 						className='flex flex-col gap-4'
 						onSubmit={(e) => {
 							e.preventDefault();
-							alert("Profile updated successfully");
+							updateProfile();
 						}}
 					>
 						<div className='flex flex-wrap gap-2'>
@@ -108,7 +157,9 @@ const EditProfileModal = () => {
 							name='link'
 							onChange={handleInputChange}
 						/>
-						<button className='btn btn-primary rounded-full btn-sm text-white'>Update</button>
+						<button className='btn btn-primary rounded-full btn-sm text-white'>{
+							isUpdatingProfile ? <LoadingSpinner /> : "Update"
+						}</button>
 					</form>
 				</div>
 				<form method='dialog' className='modal-backdrop'>

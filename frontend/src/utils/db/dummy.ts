@@ -24,6 +24,7 @@ export interface UserType {
     fullname: string;
     username: string;
     profileImg: string;
+    email: string;
     coverImg: string;
     bio: string;
     link: string;
