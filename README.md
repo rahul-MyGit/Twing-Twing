@@ -16,3 +16,7 @@ It's a twitter clone make using MERN stack using TypeScript.
 - UserName : sameer_myTweet
 - Password : code123
 ## Video Display
+
+
+https://github.com/rahul-MyGit/Twing-Twing/assets/153066667/b5aac9d7-f8d8-4da6-a059-b3ae99437c6d
+
