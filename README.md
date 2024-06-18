@@ -1,5 +1,5 @@
 
-# 2Twing
+# 2Twing website
 
 It's a twitter clone make using MERN stack using TypeScript.
 
